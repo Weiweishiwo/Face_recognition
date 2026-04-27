@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考勤系统 - 排名</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 50%, #fed7aa 100%);
+            color: #7c2d12;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(234,88,12,0.15);
+            margin-bottom: 20px;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            color: #9a3412;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-menu {
+            list-style: none;
+        }
+        .nav-item {
+            margin: 4px 0;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            color: #9a3412;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .nav-link:hover {
+            background: rgba(234,88,12,0.1);
+            color: #c2410c;
+        }
+        .nav-link.active {
+            background: rgba(234,88,12,0.15);
+            color: #ea580c;
+            border-left-color: #ea580c;
+        }
+        .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 20px;
+        }
+        .header {
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #1a1a2e;
+        }
+        
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .tab {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #6c757d;
+            transition: all 0.2s;
+        }
+        .tab:hover {
+            background: #f8f9fa;
+        }
+        .tab.active {
+            background: #10b981;
+            color: white;
+        }
+        
+        /* 内容区 */
+        .content-area {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* 排名列表 */
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .ranking-item:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+        .rank-number {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 16px;
+            margin-right: 16px;
+        }
+        .rank-number.top1 { background: linear-gradient(135deg, #ffd700, #ffb700); color: #fff; }
+        .rank-number.top2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #fff; }
+        .rank-number.top3 { background: linear-gradient(135deg, #cd7f32, #b87333); color: #fff; }
+        .rank-number.normal { background: #e9ecef; color: #6c757d; }
+        
+        .rank-info {
+            flex: 1;
+        }
+        .rank-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a1a2e;
+        }
+        .rank-dept {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+        
+        .rank-stats {
+            text-align: right;
+        }
+        .rank-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #10b981;
+        }
+        .rank-label {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        /* 连续签到特殊样式 */
+        .streak-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #adb5bd;
+        }
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        /* 统计卡片 */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #10b981;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>🎯 考勤系统</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="checkin.html" class="nav-link">
+                    <span class="nav-icon">📷</span>
+                    <span>签到</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="ranking.html" class="nav-link active">
+                    <span class="nav-icon">🏆</span>
+                    <span>排名</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="history.html" class="nav-link">
+                    <span class="nav-icon">📊</span>
+                    <span>历史查询</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="activity.html" class="nav-link">
+                    <span class="nav-icon">🎉</span>
+                    <span>活动模式</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="header">
+            <h1>🏆 签到排名</h1>
+            <p style="color:#6c757d;margin-top:8px;">查看每日、每周及连续签到排名</p>
+        </div>
+        
+        <!-- 统计卡片 -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-value" id="totalUsers">156</div>
+                <div class="stat-label">总人数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="todayCheckin">142</div>
+                <div class="stat-label">今日签到</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgStreak">23</div>
+                <div class="stat-label">平均连续天数</div>
+            </div>
+        </div>
+        
+        <!-- 标签页 -->
+        <div class="tabs">
+            <button class="tab active" data-tab="daily">📅 每日排名</button>
+            <button class="tab" data-tab="weekly">📆 每周排名</button>
+            <button class="tab" data-tab="streak">🔥 连续签到</button>
+        </div>
+        
+        <!-- 内容区 -->
+        <div class="content-area">
+            <!-- 每日排名 -->
+            <div id="daily" class="tab-content">
+                <div class="ranking-list">
+                    <div class="ranking-item">
+                        <div class="rank-number top1">1</div>
+                        <div class="rank-info">
+                            <div class="rank-name">赵明辉</div>
+                            <div class="rank-dept">2024届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">07:50</div>
+                            <div class="rank-label">今日签到</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number top2">2</div>
+                        <div class="rank-info">
+                            <div class="rank-name">王思远</div>
+                            <div class="rank-dept">2025届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">07:55</div>
+                            <div class="rank-label">今日签到</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number top3">3</div>
+                        <div class="rank-info">
+                            <div class="rank-name">陈晓萱</div>
+                            <div class="rank-dept">2026届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">08:20</div>
+                            <div class="rank-label">今日签到</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number normal">4</div>
+                        <div class="rank-info">
+                            <div class="rank-name">周雨桐</div>
+                            <div class="rank-dept">2026届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">08:35</div>
+                            <div class="rank-label">今日签到</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 每周排名 -->
+            <div id="weekly" class="tab-content" style="display:none;">
+                <div class="ranking-list">
+                    <div class="ranking-item">
+                        <div class="rank-number top1">1</div>
+                        <div class="rank-info">
+                            <div class="rank-name">王思远</div>
+                            <div class="rank-dept">2025届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">5</div>
+                            <div class="rank-label">本周签到天数</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number top2">2</div>
+                        <div class="rank-info">
+                            <div class="rank-name">赵明辉</div>
+                            <div class="rank-dept">2024届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">5</div>
+                            <div class="rank-label">本周签到天数</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number top3">3</div>
+                        <div class="rank-info">
+                            <div class="rank-name">陈晓萱</div>
+                            <div class="rank-dept">2026届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">4</div>
+                            <div class="rank-label">本周签到天数</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number normal">4</div>
+                        <div class="rank-info">
+                            <div class="rank-name">周雨桐</div>
+                            <div class="rank-dept">2026届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">3</div>
+                            <div class="rank-label">本周签到天数</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 连续签到 -->
+            <div id="streak" class="tab-content" style="display:none;">
+                <div class="ranking-list">
+                    <div class="ranking-item">
+                        <div class="rank-number top1">1</div>
+                        <div class="rank-info">
+                            <div class="rank-name">
+                                王思远
+                                <span class="streak-badge">🔥 30天</span>
+                            </div>
+                            <div class="rank-dept">2025届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">30</div>
+                            <div class="rank-label">连续签到</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number top2">2</div>
+                        <div class="rank-info">
+                            <div class="rank-name">
+                                赵明辉
+                                <span class="streak-badge">🔥 25天</span>
+                            </div>
+                            <div class="rank-dept">2024届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">25</div>
+                            <div class="rank-label">连续签到</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number top3">3</div>
+                        <div class="rank-info">
+                            <div class="rank-name">
+                                陈晓萱
+                                <span class="streak-badge">🔥 21天</span>
+                            </div>
+                            <div class="rank-dept">2026届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">21</div>
+                            <div class="rank-label">连续签到</div>
+                        </div>
+                    </div>
+                    <div class="ranking-item">
+                        <div class="rank-number normal">4</div>
+                        <div class="rank-info">
+                            <div class="rank-name">
+                                周雨桐
+                                <span class="streak-badge">🔥 18天</span>
+                            </div>
+                            <div class="rank-dept">2026届</div>
+                        </div>
+                        <div class="rank-stats">
+                            <div class="rank-value">18</div>
+                            <div class="rank-label">连续签到</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有active
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                
+                // 添加active
+                tab.classList.add('active');
+                const tabId = tab.dataset.tab;
+                document.getElementById(tabId).style.display = 'block';
+            });
+        });
+        
+        // 加载排名数据（示例）
+        async function loadRanking(type) {
+            try {
+                // 这里应该调用后端API
+                // const response = await fetch(`/api/ranking/${type}`);
+                // const data = await response.json();
+                console.log(`加载${type}排名数据`);
+            } catch (err) {
+                console.error('加载排名失败:', err);
+            }
+        }
+    </script>
+</body>
+</html>

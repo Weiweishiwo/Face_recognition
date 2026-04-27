@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考勤系统 - 活动模式</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%);
+            color: #5b21b6;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(124,58,237,0.15);
+            margin-bottom: 20px;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            color: #4c1d95;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-menu {
+            list-style: none;
+        }
+        .nav-item {
+            margin: 4px 0;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            color: #5b21b6;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .nav-link:hover {
+            background: rgba(124,58,237,0.1);
+            color: #6d28d9;
+        }
+        .nav-link.active {
+            background: rgba(124,58,237,0.15);
+            color: #7c3aed;
+            border-left-color: #7c3aed;
+        }
+        .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 20px;
+        }
+        .header {
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #1a1a2e;
+        }
+        
+        /* 两栏布局 */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 6px;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        /* 人员选择 */
+        .member-select {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            min-height: 100px;
+        }
+        .member-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #e0f2fe;
+            color: #0369a1;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .member-tag .remove {
+            cursor: pointer;
+            opacity: 0.6;
+        }
+        .member-tag .remove:hover {
+            opacity: 1;
+        }
+        
+        /* 按钮 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary { background: #10b981; color: white; }
+        .btn-secondary { background: #6366f1; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        
+        /* 活动列表 */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .activity-item {
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #10b981;
+            transition: all 0.2s;
+        }
+        .activity-item:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+        .activity-item.ongoing { border-left-color: #10b981; }
+        .activity-item.upcoming { border-left-color: #6366f1; }
+        .activity-item.ended { border-left-color: #9ca3af; }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+        .activity-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a1a2e;
+        }
+        .activity-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-ongoing { background: #d1fae5; color: #065f46; }
+        .status-upcoming { background: #e0e7ff; color: #3730a3; }
+        .status-ended { background: #e5e7eb; color: #4b5563; }
+        
+        .activity-time {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        .activity-time span {
+            margin-right: 16px;
+        }
+        
+        .activity-members {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6c757d;
+        }
+        .member-avatars {
+            display: flex;
+        }
+        .member-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #10b981;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-left: -8px;
+            border: 2px solid white;
+        }
+        .member-avatar:first-child {
+            margin-left: 0;
+        }
+        .member-more {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            margin-left: -8px;
+            border: 2px solid white;
+        }
+        
+        .activity-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .activity-actions button {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+        
+        /* 统计 */
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            padding: 12px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #10b981;
+        }
+        .stat-text {
+            font-size: 13px;
+            color: #6c757d;
+        }
+        
+        /* 人员弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .modal-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .user-item:hover {
+            background: #f8f9fa;
+        }
+        .user-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #10b981;
+        }
+        .user-item.selected {
+            background: #d1fae5;
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>🎯 考勤系统</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="checkin.html" class="nav-link">
+                    <span class="nav-icon">📷</span>
+                    <span>签到</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="ranking.html" class="nav-link">
+                    <span class="nav-icon">🏆</span>
+                    <span>排名</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="history.html" class="nav-link">
+                    <span class="nav-icon">📊</span>
+                    <span>历史查询</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="activity.html" class="nav-link active">
+                    <span class="nav-icon">🎉</span>
+                    <span>活动模式</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="header">
+            <h1>🎉 活动模式</h1>
+            <p style="color:#6c757d;margin-top:8px;">创建和管理特殊活动签到</p>
+        </div>
+        
+        <!-- 统计栏 -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number" id="ongoingCount">2</div>
+                <div class="stat-text">进行中</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="upcomingCount">3</div>
+                <div class="stat-text">即将开始</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="endedCount">12</div>
+                <div class="stat-text">已结束</div>
+            </div>
+        </div>
+        
+        <div class="content-grid">
+            <!-- 创建活动 -->
+            <div class="card">
+                <h2 class="card-title">➕ 创建新活动</h2>
+                <form id="activityForm">
+                    <div class="form-group">
+                        <label>活动名称</label>
+                        <input type="text" id="activityName" placeholder="如：社团活动、讲座、比赛" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>开始时间</label>
+                            <input type="datetime-local" id="startTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label>结束时间</label>
+                            <input type="datetime-local" id="endTime" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>活动地点</label>
+                        <input type="text" id="location" placeholder="如：教学楼、图书馆、操场">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>活动描述</label>
+                        <textarea id="description" placeholder="活动内容、注意事项等"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>参加人员（届）</label>
+                        <div class="member-select" id="selectedMembers">
+                            <span style="color:#adb5bd;font-size:13px;">点击选择参加的届</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width:100%;">创建活动</button>
+                </form>
+            </div>
+            
+            <!-- 活动列表 -->
+            <div class="card">
+                <h2 class="card-title">📋 活动列表</h2>
+                <div class="activity-list" id="activityList">
+                    <div class="activity-item ongoing">
+                        <div class="activity-header">
+                            <div class="activity-name">校级运动会 · 4×100接力</div>
+                            <span class="activity-status status-ongoing">进行中</span>
+                        </div>
+                        <div class="activity-time">
+                            <span>📅 2026-04-18 08:00</span>
+                            <span>⏰ 2026-04-18 12:00</span>
+                            <span>📍 田径场</span>
+                        </div>
+                        <div class="activity-members">
+                            <div class="member-avatars">
+                                <div class="member-avatar">赵</div>
+                                <div class="member-avatar">王</div>
+                                <div class="member-avatar">陈</div>
+                                <div class="member-more">+32</div>
+                            </div>
+                            <span>共35人参加</span>
+                        </div>
+                        <div class="activity-actions">
+                            <button class="btn btn-primary">签到二维码</button>
+                            <button class="btn btn-secondary">查看详情</button>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item ongoing">
+                        <div class="activity-header">
+                            <div class="activity-name">英语四级模拟考试</div>
+                            <span class="activity-status status-ongoing">进行中</span>
+                        </div>
+                        <div class="activity-time">
+                            <span>📅 2026-04-18 09:00</span>
+                            <span>⏰ 2026-04-18 11:30</span>
+                            <span>📍 教学楼B302</span>
+                        </div>
+                        <div class="activity-members">
+                            <div class="member-avatars">
+                                <div class="member-avatar">周</div>
+                                <div class="member-avatar">赵</div>
+                                <div class="member-more">+58</div>
+                            </div>
+                            <span>共60人参加</span>
+                        </div>
+                        <div class="activity-actions">
+                            <button class="btn btn-primary">签到二维码</button>
+                            <button class="btn btn-secondary">查看详情</button>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item upcoming">
+                        <div class="activity-header">
+                            <div class="activity-name">校园十佳歌手初赛</div>
+                            <span class="activity-status status-upcoming">即将开始</span>
+                        </div>
+                        <div class="activity-time">
+                            <span>📅 2026-04-20 19:00</span>
+                            <span>⏰ 2026-04-20 21:30</span>
+                            <span>📍 大学生活动中心</span>
+                        </div>
+                        <div class="activity-members">
+                            <div class="member-avatars">
+                                <div class="member-avatar">陈</div>
+                                <div class="member-avatar">周</div>
+                                <div class="member-more">+18</div>
+                            </div>
+                            <span>共20人参加</span>
+                        </div>
+                        <div class="activity-actions">
+                            <button class="btn btn-secondary">编辑</button>
+                            <button class="btn btn-danger">取消</button>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item upcoming">
+                        <div class="activity-header">
+                            <div class="activity-name">计算机学院考研经验分享会</div>
+                            <span class="activity-status status-upcoming">即将开始</span>
+                        </div>
+                        <div class="activity-time">
+                            <span>📅 2026-04-22 14:00</span>
+                            <span>⏰ 2026-04-22 16:00</span>
+                            <span>📍 图书馆报告厅</span>
+                        </div>
+                        <div class="activity-members">
+                            <div class="member-avatars">
+                                <div class="member-avatar">王</div>
+                                <div class="member-avatar">陈</div>
+                                <div class="member-more">+88</div>
+                            </div>
+                            <span>共90人参加</span>
+                        </div>
+                        <div class="activity-actions">
+                            <button class="btn btn-secondary">编辑</button>
+                            <button class="btn btn-danger">取消</button>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item ended">
+                        <div class="activity-header">
+                            <div class="activity-name">社团招新 · 百团大战</div>
+                            <span class="activity-status status-ended">已结束</span>
+                        </div>
+                        <div class="activity-time">
+                            <span>📅 2026-03-10 09:00</span>
+                            <span>⏰ 2026-03-10 17:00</span>
+                            <span>📍 学校主干道</span>
+                        </div>
+                        <div class="activity-members">
+                            <div class="member-avatars">
+                                <div class="member-avatar">张</div>
+                                <div class="member-avatar">李</div>
+                                <div class="member-avatar">王</div>
+                                <div class="member-more">+200</div>
+                            </div>
+                            <span>共203人参加，实到198人</span>
+                        </div>
+                        <div class="activity-actions">
+                            <button class="btn btn-secondary">查看统计</button>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item ended">
+                        <div class="activity-header">
+                            <div class="activity-name">寒假社会实践答辩</div>
+                            <span class="activity-status status-ended">已结束</span>
+                        </div>
+                        <div class="activity-time">
+                            <span>📅 2026-03-05 14:00</span>
+                            <span>⏰ 2026-03-05 18:00</span>
+                            <span>📍 行政楼会议室</span>
+                        </div>
+                        <div class="activity-members">
+                            <div class="member-avatars">
+                                <div class="member-avatar">赵</div>
+                                <div class="member-avatar">钱</div>
+                                <div class="member-more">+28</div>
+                            </div>
+                            <span>共30人参加，实到30人</span>
+                        </div>
+                        <div class="activity-actions">
+                            <button class="btn btn-secondary">查看统计</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 人员选择弹窗 -->
+    <div class="modal" id="memberModal">
+        <div class="modal-content">
+            <h3 class="modal-title">选择参加人员</h3>
+            <div class="user-list" id="userList">
+                <div class="user-item" data-id="1">
+                    <input type="checkbox">
+                    <span>2023届</span>
+                </div>
+                <div class="user-item" data-id="2">
+                    <input type="checkbox">
+                    <span>2024届</span>
+                </div>
+                <div class="user-item" data-id="3">
+                    <input type="checkbox">
+                    <span>2025届</span>
+                </div>
+                <div class="user-item" data-id="4">
+                    <input type="checkbox">
+                    <span>2026届</span>
+                </div>
+                <div class="user-item" data-id="5">
+                    <input type="checkbox">
+                    <span>2027届</span>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-primary" style="flex:1;" onclick="confirmMembers()">确认</button>
+                <button class="btn" style="flex:1;background:#e9ecef;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 选中的成员
+        let selectedMembers = [];
+        
+        // 打开人员选择
+        document.getElementById('selectedMembers').addEventListener('click', () => {
+            document.getElementById('memberModal').classList.add('active');
+        });
+        
+        // 选择人员
+        document.querySelectorAll('.user-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.type !== 'checkbox') {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                }
+                item.classList.toggle('selected', item.querySelector('input[type="checkbox"]').checked);
+            });
+        });
+        
+        // 确认选择
+        function confirmMembers() {
+            selectedMembers = [];
+            document.querySelectorAll('.user-item.selected').forEach(item => {
+                const name = item.querySelector('span').textContent.split(' - ')[0];
+                selectedMembers.push(name);
+            });
+            
+            updateMemberDisplay();
+            closeModal();
+        }
+        
+        // 更新显示
+        function updateMemberDisplay() {
+            const container = document.getElementById('selectedMembers');
+            if (selectedMembers.length === 0) {
+                container.innerHTML = '<span style="color:#adb5bd;font-size:13px;">点击选择参加的届</span>';
+            } else {
+                container.innerHTML = selectedMembers.map(m => 
+                    `<span class="member-tag">${m} <span class="remove" onclick="removeMember('${m}')">×</span></span>`
+                ).join('');
+            }
+        }
+        
+        // 移除成员
+        function removeMember(name) {
+            selectedMembers = selectedMembers.filter(m => m !== name);
+            updateMemberDisplay();
+        }
+        
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('memberModal').classList.remove('active');
+        }
+        
+        // 创建活动
+        document.getElementById('activityForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const activity = {
+                name: document.getElementById('activityName').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value,
+                members: selectedMembers
+            };
+            
+            console.log('创建活动:', activity);
+            // 这里调用后端API创建活动
+            alert('活动创建成功！');
+            
+            // 重置表单
+            e.target.reset();
+            selectedMembers = [];
+            updateMemberDisplay();
+        });
+        
+        // 点击遮罩关闭弹窗
+        document.getElementById('memberModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('memberModal')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
